@@ -1,0 +1,17 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="url(#a)"/>
+  <rect x="105" y="160" width="590" height="750" rx="8" fill="url(#b)" stroke="#626262" stroke-opacity=".45"/>
+  <rect x="310" y="280" width="180" height="180" fill="#D8D8D8" fill-opacity=".3"/>
+  <text x="400" y="880" text-anchor="middle" fill="#E9E9E9" fill-opacity=".75" font-family="Arial, Helvetica, sans-serif" font-size="38" letter-spacing="8">NEBVSIN / DROP</text>
+  <defs>
+    <linearGradient id="a" x1="0" y1="0" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#121212"/>
+      <stop offset="1" stop-color="#060606"/>
+    </linearGradient>
+    <linearGradient id="b" x1="105" y1="160" x2="695" y2="910" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#292929"/>
+      <stop offset=".5" stop-color="#0E0E0E"/>
+      <stop offset="1" stop-color="#2F2F2F"/>
+    </linearGradient>
+  </defs>
+</svg>

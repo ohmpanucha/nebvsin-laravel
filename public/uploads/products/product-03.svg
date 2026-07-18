@@ -1,0 +1,17 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="url(#a)"/>
+  <rect x="130" y="170" width="540" height="740" rx="8" fill="url(#b)" stroke="#727272" stroke-opacity=".4"/>
+  <path d="M400 245L490 420H310L400 245Z" fill="#D9D9D9" fill-opacity=".3"/>
+  <text x="400" y="880" text-anchor="middle" fill="#E9E9E9" fill-opacity=".75" font-family="Arial, Helvetica, sans-serif" font-size="38" letter-spacing="8">NEBVSIN / UNIT</text>
+  <defs>
+    <linearGradient id="a" x1="0" y1="1000" x2="800" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#050505"/>
+      <stop offset="1" stop-color="#181818"/>
+    </linearGradient>
+    <linearGradient id="b" x1="130" y1="170" x2="670" y2="910" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#313131"/>
+      <stop offset=".47" stop-color="#121212"/>
+      <stop offset="1" stop-color="#202020"/>
+    </linearGradient>
+  </defs>
+</svg>

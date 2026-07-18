@@ -1,0 +1,17 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="url(#a)"/>
+  <rect x="110" y="180" width="580" height="720" rx="8" fill="url(#b)" stroke="#5A5A5A" stroke-opacity=".45"/>
+  <path d="M400 260L460 325L400 390L340 325L400 260Z" fill="#CFCFCF" fill-opacity=".45"/>
+  <text x="400" y="880" text-anchor="middle" fill="#E9E9E9" fill-opacity=".75" font-family="Arial, Helvetica, sans-serif" font-size="38" letter-spacing="8">NEBVSIN / 009</text>
+  <defs>
+    <linearGradient id="a" x1="0" y1="0" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#090909"/>
+      <stop offset="1" stop-color="#171717"/>
+    </linearGradient>
+    <linearGradient id="b" x1="110" y1="180" x2="690" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#252525"/>
+      <stop offset=".53" stop-color="#111"/>
+      <stop offset="1" stop-color="#2E2E2E"/>
+    </linearGradient>
+  </defs>
+</svg>
