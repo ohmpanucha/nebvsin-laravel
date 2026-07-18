@@ -3,6 +3,10 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Hostinger example: set Laravel app path relative to public_html.
+    # Uncomment this on production if the app folder is public_html/nebvsin.
+    # SetEnv LARAVEL_BASE_PATH nebvsin
+
     RewriteEngine On
 
     # Handle Authorization Header

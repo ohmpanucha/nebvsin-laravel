@@ -7,7 +7,24 @@ use App\Http\Controllers\StorefrontCartController;
 use App\Http\Controllers\StorefrontController;
 use App\Http\Controllers\StorefrontPageController;
 use App\Http\Controllers\StorefrontSeoController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+
+// Route::match(['get', 'post'], '/dev/hash-password', function (Request $request) {
+//     abort_unless(config('app.debug'), 404);
+
+//     $password = (string) $request->input('password', '');
+//     if ($password === '') {
+//         return response()->json([
+//             'message' => 'Send password as ?password=your-password or POST password.',
+//         ], 422);
+//     }
+
+//     return response()->json([
+//         'hash' => Hash::make($password),
+//     ]);
+// })->middleware('throttle:20,1')->name('dev.hash-password');
 
 Route::get('/', [StorefrontController::class, 'index'])->name('storefront.home');
 Route::get('/process', [StorefrontPageController::class, 'process'])->name('storefront.process');
