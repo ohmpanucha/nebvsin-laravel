@@ -2,6 +2,7 @@
 
 namespace App\Support\Admin;
 
+use App\Support\ProductTierConfig;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -23,13 +24,16 @@ class ProductsAdminService
             return [];
         }
 
+        $hasTier = Schema::hasColumn('products', 'tier');
+
         $products = DB::table('products as p')
             ->leftJoin('order_items as oi', DB::raw('CAST(oi.product_id AS UNSIGNED)'), '=', 'p.id')
             ->leftJoin('orders as o', 'o.id', '=', 'oi.order_id')
-            ->select(
+            ->select(array_filter([
                 'p.id',
                 'p.name',
                 'p.price_thb',
+                $hasTier ? 'p.tier' : null,
                 'p.image',
                 'p.alt',
                 'p.description',
@@ -37,18 +41,22 @@ class ProductsAdminService
                 'p.limited_qty',
                 'p.is_public',
                 'p.coming_soon',
-                DB::raw("COALESCE(SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END), 0) AS paid_sold_qty")
-            )
-            ->groupBy('p.id', 'p.name', 'p.price_thb', 'p.image', 'p.alt', 'p.description', 'p.sort_order', 'p.limited_qty', 'p.is_public', 'p.coming_soon')
+                DB::raw("COALESCE(SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END), 0) AS paid_sold_qty"),
+            ]))
+            ->groupBy(array_filter([
+                'p.id', 'p.name', 'p.price_thb', $hasTier ? 'p.tier' : null, 'p.image', 'p.alt',
+                'p.description', 'p.sort_order', 'p.limited_qty', 'p.is_public', 'p.coming_soon',
+            ]))
             ->orderBy('p.sort_order')
             ->orderBy('p.id')
             ->get();
 
-        return $products->map(function ($item) {
+        return $products->map(function ($item) use ($hasTier) {
             return [
                 'id' => $item->id,
                 'name' => $item->name,
                 'price_thb' => (int) $item->price_thb,
+                'tier' => $hasTier ? ProductTierConfig::normalizeKey($item->tier) : ProductTierConfig::inferFromPrice((int) $item->price_thb),
                 'image' => $item->image,
                 'alt' => $item->alt,
                 'description' => $item->description,
@@ -161,6 +169,10 @@ class ProductsAdminService
                 throw new \InvalidArgumentException('price_thb must be a non-negative integer.');
             }
             $payload['price_thb'] = $price;
+        }
+
+        if ((! $partial || $has('tier')) && Schema::hasColumn('products', 'tier')) {
+            $payload['tier'] = ProductTierConfig::normalizeKey($input['tier'] ?? null);
         }
 
         if (! $partial || $has('image')) {

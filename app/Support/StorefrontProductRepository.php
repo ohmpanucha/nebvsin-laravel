@@ -97,6 +97,16 @@ class StorefrontProductRepository
                             'image_2' => $attributes['image_2'] ?? null,
                             'image_3' => $attributes['image_3'] ?? null,
                             'image_4' => $attributes['image_4'] ?? null,
+                            'tier' => $attributes['tier'] ?? null,
+                            'short_description' => $attributes['short_description'] ?? null,
+                            'story' => $attributes['story'] ?? null,
+                            'colors' => $attributes['colors'] ?? null,
+                            'sizes' => $attributes['sizes'] ?? null,
+                            'is_limited' => $attributes['is_limited'] ?? null,
+                            'edition_total' => $attributes['edition_total'] ?? null,
+                            'edition_number' => $attributes['edition_number'] ?? null,
+                            'packaging' => $attributes['packaging'] ?? null,
+                            'status' => $attributes['status'] ?? null,
                         ]);
                     });
             }
@@ -125,6 +135,16 @@ class StorefrontProductRepository
                     'image_2' => $product['image_2'] ?? null,
                     'image_3' => $product['image_3'] ?? null,
                     'image_4' => $product['image_4'] ?? null,
+                    'tier' => $product['tier'] ?? null,
+                    'short_description' => $product['shortDescription'] ?? ($product['short_description'] ?? null),
+                    'story' => $product['story'] ?? null,
+                    'colors' => $product['colors'] ?? null,
+                    'sizes' => $product['sizes'] ?? null,
+                    'is_limited' => $product['isLimited'] ?? ($product['is_limited'] ?? null),
+                    'edition_total' => $product['editionTotal'] ?? ($product['edition_total'] ?? null),
+                    'edition_number' => $product['editionNumber'] ?? ($product['edition_number'] ?? null),
+                    'packaging' => $product['packaging'] ?? null,
+                    'status' => $product['status'] ?? null,
                 ]);
             });
     }
@@ -150,11 +170,20 @@ class StorefrontProductRepository
         $slug = trim((string) ($product['slug'] ?? ''));
         $normalizedSlug = $slug !== '' ? $slug : $this->makeSlug($name, $id);
         $priceThb = (int) ($product['price_thb'] ?? 0);
+        $tierKey = ProductTierConfig::normalizeKey($product['tier'] ?? null);
+        $tier = ProductTierConfig::get($tierKey);
         $metaTitle = trim((string) ($product['meta_title'] ?? ''));
         $metaDescription = trim((string) ($product['meta_description'] ?? ''));
         $image = trim((string) ($product['image'] ?? ''));
         $ogImage = trim((string) ($product['og_image'] ?? ''));
         $gallery = $this->normalizeGallery($product, $image, $name);
+        $limitedQty = (int) ($product['limited_qty'] ?? 0);
+        $editionTotal = (int) ($product['edition_total'] ?? 0);
+        $editionNumber = (int) ($product['edition_number'] ?? 0);
+        $isLimited = array_key_exists('is_limited', $product)
+            ? (bool) $product['is_limited']
+            : ($tierKey === 'signature' || $limitedQty > 0);
+        $status = $this->normalizeStatus($product['status'] ?? null, (bool) ($product['coming_soon'] ?? false));
 
         return [
             'id' => $id,
@@ -166,8 +195,26 @@ class StorefrontProductRepository
             'image_url' => $this->assetUrl($image),
             'gallery' => $gallery,
             'alt' => trim((string) ($product['alt'] ?? '')) ?: $name.' by NEBVSIN streetwear',
+            'short_description' => trim((string) ($product['short_description'] ?? '')),
+            'story' => trim((string) ($product['story'] ?? '')),
+            'colors' => $this->normalizeStringList($product['colors'] ?? null),
+            'sizes' => $this->normalizeStringList($product['sizes'] ?? null),
+            'tier' => $tierKey,
+            'tier_key' => $tierKey,
+            'tier_number' => $tier['number'],
+            'tier_label' => $tier['label'],
+            'tier_tagline' => $tier['tagline'],
+            'tier_summary' => $tier['summary'],
             'sort_order' => (int) ($product['sort_order'] ?? 0),
-            'limited_qty' => (int) ($product['limited_qty'] ?? 0),
+            'limited_qty' => $limitedQty,
+            'is_limited' => $isLimited,
+            'edition_total' => $editionTotal > 0 ? $editionTotal : ($tierKey === 'signature' ? $limitedQty : 0),
+            'edition_number' => $editionNumber,
+            'edition_label' => $editionNumber > 0 && ($editionTotal > 0 || $limitedQty > 0)
+                ? str_pad((string) $editionNumber, 2, '0', STR_PAD_LEFT).' / '.($editionTotal > 0 ? $editionTotal : $limitedQty)
+                : null,
+            'packaging' => trim((string) ($product['packaging'] ?? '')) ?: ($tierKey === 'signature' ? 'premium' : 'standard'),
+            'status' => $status,
             'is_public' => (bool) ($product['is_public'] ?? true),
             'coming_soon' => (bool) ($product['coming_soon'] ?? false),
             'slug' => $normalizedSlug,
@@ -241,6 +288,40 @@ class StorefrontProductRepository
             'url' => $this->assetUrl($path),
             'alt' => $alt !== '' ? $alt : $name.' by NEBVSIN image '.($index + 1),
         ];
+    }
+
+    protected function normalizeStringList($value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                $value = $decoded;
+            } else {
+                $value = array_filter(array_map('trim', explode(',', $value)));
+            }
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->map(fn ($item) => strtoupper(trim((string) $item)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function normalizeStatus($status, bool $comingSoon): string
+    {
+        if ($comingSoon) {
+            return 'coming_soon';
+        }
+
+        $value = strtolower(trim((string) $status));
+
+        return in_array($value, ['available', 'sold_out', 'coming_soon'], true) ? $value : 'available';
     }
 
     protected function parsePriceThb(?string $priceLabel): int

@@ -42,6 +42,11 @@ class StorefrontCartService
                 'price_label' => $product['price_label'],
                 'image' => $product['image'],
                 'image_url' => $product['image_url'],
+                'tier' => $product['tier'] ?? 'core',
+                'tier_label' => $product['tier_label'] ?? 'CORE',
+                'tier_number' => $product['tier_number'] ?? '02',
+                'is_limited' => (bool) ($product['is_limited'] ?? false),
+                'packaging' => $product['packaging'] ?? 'standard',
                 'size' => $size,
                 'qty' => $quantity,
             ];

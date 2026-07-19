@@ -30,9 +30,16 @@
                         <div class="cart-item-main">
                             <div class="cart-item-topline">
                                 <div class="cart-item-meta">
+                                    <p class="cart-item-tier">{{ $item['tier_label'] ?? 'CORE' }}</p>
                                     <p>{{ $item['name'] }}</p>
                                     <p>{{ $item['price_label'] }}</p>
                                     <p>SIZE / {{ $item['size'] }}</p>
+                                    @if (($item['tier'] ?? '') === 'signature' || ($item['is_limited'] ?? false))
+                                        <p class="cart-item-limited">{{ ($item['tier'] ?? '') === 'signature' ? 'SIGNATURE PRODUCT' : 'LIMITED EDITION' }}</p>
+                                    @endif
+                                    @if (($item['packaging'] ?? '') === 'premium')
+                                        <p>PREMIUM PACKAGING INCLUDED</p>
+                                    @endif
                                     <p class="cart-item-line-total" data-cart-line-subtotal>{{ number_format(((int) $item['price_thb']) * ((int) $item['qty'])) }} THB</p>
                                 </div>
                                 <form method="post" action="{{ route('storefront.cart.remove', ['key' => $item['key'], 'lang' => $storefrontLocale, 'cart' => 'open']) }}" class="cart-remove-form">
@@ -124,7 +131,6 @@
             var confirmModal = document.querySelector('[data-cart-confirm-modal]');
             var confirmSubmit = confirmModal ? confirmModal.querySelector('[data-cart-confirm-submit]') : null;
             var confirmClose = confirmModal ? confirmModal.querySelectorAll('[data-cart-confirm-close]') : [];
-            alert();
             if (confirmModal && confirmSubmit && checkoutTriggers.length) {
                 checkoutTriggers.forEach(function (trigger) {
                     trigger.addEventListener('click', function (event) {

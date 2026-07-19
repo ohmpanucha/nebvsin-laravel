@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Support\Admin\CustomersAdminService;
+use App\Support\Admin\HomeContentAdminService;
+use App\Support\Admin\ImageUploadService;
 use App\Support\Admin\InventoryAdminService;
 use App\Support\Admin\OrdersAdminService;
 use App\Support\Admin\PaymentsAdminService;
@@ -27,6 +29,8 @@ class AdminController extends Controller
     protected $payments;
     protected $shipping;
     protected $procurement;
+    protected $homeContent;
+    protected $imageUploads;
 
     public function __construct(
         OrdersAdminService $orders,
@@ -35,7 +39,9 @@ class AdminController extends Controller
         CustomersAdminService $customers,
         PaymentsAdminService $payments,
         ShippingAdminService $shipping,
-        ProcurementAdminService $procurement
+        ProcurementAdminService $procurement,
+        HomeContentAdminService $homeContent,
+        ImageUploadService $imageUploads
     ) {
         $this->orders = $orders;
         $this->products = $products;
@@ -44,6 +50,8 @@ class AdminController extends Controller
         $this->payments = $payments;
         $this->shipping = $shipping;
         $this->procurement = $procurement;
+        $this->homeContent = $homeContent;
+        $this->imageUploads = $imageUploads;
     }
 
     public function procurement(Request $request): View
@@ -128,6 +136,21 @@ class AdminController extends Controller
             return back()->with('admin_status', 'Order updated.');
         } catch (\Throwable $exception) {
             return back()->with('admin_status', $exception->getMessage());
+        }
+    }
+
+    public function home(Request $request): View
+    {
+        return $this->renderModule($request, 'home');
+    }
+
+    public function updateHomeContent(Request $request): RedirectResponse
+    {
+        try {
+            $this->homeContent->update($this->prepareHomeContentInput($request));
+            return back()->with('admin_status', 'Home content updated.');
+        } catch (\Throwable $exception) {
+            return back()->withInput()->with('admin_status', $exception->getMessage());
         }
     }
 
@@ -280,6 +303,7 @@ class AdminController extends Controller
     protected function navItems($locale, array $copy): array
     {
         return [
+            ['key' => 'home', 'label' => $copy['nav_home'], 'route' => route('admin.home', ['lang' => $locale])],
             ['key' => 'products', 'label' => $copy['nav_products'], 'route' => route('admin.products', ['lang' => $locale])],
             ['key' => 'procurement', 'label' => $copy['nav_procurement'], 'route' => route('admin.procurement', ['lang' => $locale])],
             ['key' => 'inventory', 'label' => $copy['nav_inventory'], 'route' => route('admin.inventory', ['lang' => $locale])],
@@ -293,6 +317,7 @@ class AdminController extends Controller
     protected function moduleConfig($module, array $copy): array
     {
         $map = [
+            'home' => ['title' => $copy['title_home'], 'description' => $copy['description_home'], 'route' => 'admin.home'],
             'procurement' => ['title' => $copy['title_procurement'], 'description' => $copy['description_procurement'], 'route' => 'admin.procurement'],
             'inventory' => ['title' => $copy['title_inventory'], 'description' => $copy['description_inventory'], 'route' => 'admin.inventory'],
             'products' => ['title' => $copy['title_products'], 'description' => $copy['description_products'], 'route' => 'admin.products'],
@@ -308,6 +333,8 @@ class AdminController extends Controller
     protected function moduleStats($module): array
     {
         switch ($module) {
+            case 'home':
+                return $this->homeContent->summary();
             case 'procurement':
                 return $this->procurement->summary();
             case 'inventory':
@@ -329,6 +356,8 @@ class AdminController extends Controller
     protected function moduleRows($module): array
     {
         switch ($module) {
+            case 'home':
+                return [];
             case 'procurement':
                 return $this->procurement->listPurchaseOrders();
             case 'inventory':
@@ -448,6 +477,10 @@ class AdminController extends Controller
     protected function moduleData($module): array
     {
         switch ($module) {
+            case 'home':
+                return [
+                    'content' => $this->homeContent->get(),
+                ];
             case 'procurement':
                 return [
                     'suppliers' => $this->procurement->suppliers(),
@@ -491,29 +524,32 @@ class AdminController extends Controller
 
     protected function storeProductImage(UploadedFile $file): string
     {
-        $mime = (string) $file->getMimeType();
-        if (! in_array($mime, ['image/png', 'image/jpeg', 'image/webp'], true)) {
-            throw new \InvalidArgumentException('Product image must be PNG, JPEG, or WEBP.');
+        return $this->imageUploads->store($file, 'products', 'product-');
+    }
+
+    protected function prepareHomeContentInput(Request $request): array
+    {
+        $input = $request->except(['hero_image_file', 'feature_image_file', 'signature_image_file']);
+
+        $imageFields = [
+            'hero_image_file' => 'hero_image',
+            'feature_image_file' => 'feature_image',
+            'signature_image_file' => 'signature_image',
+        ];
+
+        foreach ($imageFields as $fileField => $column) {
+            /** @var UploadedFile|null $file */
+            $file = $request->file($fileField);
+
+            if ($file instanceof UploadedFile && $file->isValid()) {
+                $input[$column] = $this->imageUploads->store($file, 'home', 'home-');
+            } elseif ($request->boolean($column.'_clear')) {
+                $input[$column] = '';
+            } else {
+                unset($input[$column]);
+            }
         }
 
-        if (($file->getSize() ?? 0) > 5 * 1024 * 1024) {
-            throw new \InvalidArgumentException('Product image must be 5MB or smaller.');
-        }
-
-        $extension = strtolower((string) ($file->getClientOriginalExtension() ?: $file->extension() ?: 'png'));
-        if (! in_array($extension, ['png', 'jpg', 'jpeg', 'webp'], true)) {
-            $extension = 'png';
-        }
-
-        $filename = 'product-'.Str::lower((string) Str::uuid()).'.'.$extension;
-        $targetDirectory = public_path('uploads/products');
-
-        if (! is_dir($targetDirectory) && ! @mkdir($targetDirectory, 0755, true) && ! is_dir($targetDirectory)) {
-            throw new \RuntimeException('Unable to create product upload directory.');
-        }
-
-        $file->move($targetDirectory, $filename);
-
-        return '/uploads/products/'.$filename;
+        return $input;
     }
 }

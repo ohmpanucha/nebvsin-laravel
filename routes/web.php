@@ -27,6 +27,11 @@ use Illuminate\Support\Facades\Route;
 // })->middleware('throttle:20,1')->name('dev.hash-password');
 
 Route::get('/', [StorefrontController::class, 'index'])->name('storefront.home');
+Route::get('/shop', [StorefrontController::class, 'shop'])->name('storefront.shop');
+Route::get('/collections', [StorefrontController::class, 'collections'])->name('storefront.collections');
+Route::get('/collections/{tier}', [StorefrontController::class, 'collections'])
+    ->where('tier', 'essential|core|signature')
+    ->name('storefront.collections.tier');
 Route::get('/process', [StorefrontPageController::class, 'process'])->name('storefront.process');
 Route::get('/login', [StorefrontAuthController::class, 'showLogin'])->name('storefront.login');
 Route::post('/login', [StorefrontAuthController::class, 'login'])->name('storefront.login.submit');
@@ -55,6 +60,8 @@ Route::middleware('legacy.auth')->group(function () {
     Route::get('/checkout/payment/{orderId}', [StorefrontCartController::class, 'payment'])->name('storefront.checkout.payment');
 });
 Route::middleware(['legacy.auth', 'legacy.admin'])->prefix('admin')->group(function () {
+    Route::get('/home', [AdminController::class, 'home'])->name('admin.home');
+    Route::patch('/home', [AdminController::class, 'updateHomeContent'])->name('admin.home.update');
     Route::get('/procurement', [AdminController::class, 'procurement'])->name('admin.procurement');
     Route::post('/procurement/suppliers', [AdminController::class, 'storeSupplier'])->name('admin.procurement.suppliers.store');
     Route::post('/procurement/purchase-orders', [AdminController::class, 'storePurchaseOrder'])->name('admin.procurement.purchase-orders.store');

@@ -26,6 +26,8 @@
         ? route('storefront.home', ['lang' => $storefrontLocale])
         : request()->fullUrlWithQuery(['cart' => null]);
     $isProcessPage = request()->routeIs('storefront.process');
+    $isShopPage = request()->routeIs('storefront.shop');
+    $isCollectionPage = request()->routeIs('storefront.collections*');
     $showFloatingCart = ! request()->routeIs('storefront.checkout')
         && ! request()->routeIs('storefront.checkout.payment')
         && ! request()->routeIs('admin.*');
@@ -51,12 +53,16 @@
             </button>
             <div id="site-navigation" class="nav-groups" data-nav-groups>
                 <ul class="nav-list nav-main">
-                    <li><a href="{{ route('storefront.home', ['lang' => $storefrontLocale]) }}#drop" data-nav-section-link="drop" data-mobile-close>{{ $storefrontLayoutCopy['nav_drop'] ?? 'DROP' }}</a></li>
+                    <li><a href="{{ route('storefront.shop', ['lang' => $storefrontLocale]) }}" class="{{ $isShopPage && request()->query('level') === null ? 'is-active' : '' }}" data-mobile-close>SHOP</a></li>
+                    <li><a href="{{ route('storefront.shop', ['level' => 'essential', 'lang' => $storefrontLocale]) }}" class="{{ request()->query('level') === 'essential' ? 'is-active' : '' }}" data-mobile-close>ESSENTIAL</a></li>
+                    <li><a href="{{ route('storefront.shop', ['level' => 'core', 'lang' => $storefrontLocale]) }}" class="{{ request()->query('level') === 'core' ? 'is-active' : '' }}" data-mobile-close>CORE</a></li>
+                    <li><a href="{{ route('storefront.shop', ['level' => 'signature', 'lang' => $storefrontLocale]) }}" class="{{ request()->query('level') === 'signature' ? 'is-active' : '' }}" data-mobile-close>SIGNATURE</a></li>
+                    <li><a href="{{ route('storefront.collections', ['lang' => $storefrontLocale]) }}" class="{{ $isCollectionPage ? 'is-active' : '' }}" data-mobile-close>COLLECTION</a></li>
                     <li><a href="{{ route('storefront.home', ['lang' => $storefrontLocale]) }}#manifesto" data-nav-section-link="manifesto" data-mobile-close>{{ $storefrontLayoutCopy['nav_about'] ?? 'ABOUT' }}</a></li>
-                    <li><a href="{{ route('storefront.process', ['lang' => $storefrontLocale]) }}" class="{{ $isProcessPage ? 'is-active' : '' }}" data-mobile-close>{{ $storefrontLayoutCopy['nav_process'] ?? 'PROCESS' }}</a></li>
                 </ul>
                 <ul class="nav-list nav-utility">
-                    <li>
+                    {{-- เก็บไว้ก่อน ห้ามลบ --}}
+                    {{-- <li>
                         <div class="locale-switcher" role="group" aria-label="{{ $storefrontLayoutCopy['language_switcher'] ?? 'Language switcher' }}">
                             <a
                                 class="locale-switch-btn {{ $storefrontLocale === 'en' ? 'is-active' : '' }}"
@@ -67,7 +73,7 @@
                                 href="{{ request()->fullUrlWithQuery(['lang' => 'th']) }}"
                             >TH</a>
                         </div>
-                    </li>
+                    </li> --}}
                     @if ($storefrontAuthUser)
                         <li class="profile-menu-item">
                             <details class="profile-menu">
@@ -127,13 +133,15 @@
 
     @include('storefront.cart._drawer')
 
-    <footer class="site-footer reveal in-view">
-        <div class="footer-links">
-            <a href="https://instagram.com/nebvsin" target="_blank" rel="noreferrer noopener">IG / @NEBVSIN</a>
-            <a href="mailto:nebvsinstudio@gmail.com">nebvsinstudio@gmail.com</a>
-        </div>
-        <p>&copy; 2026 NEBVSIN. {{ $storefrontLayoutCopy['footer_rights'] ?? 'All rights reserved.' }}</p>
-    </footer>
+    <div style="border-top: 1px solid var(--line);">
+        <footer class="site-footer reveal in-view">
+            <div class="footer-links">
+                <a href="https://instagram.com/nebvsin" target="_blank" rel="noreferrer noopener">IG / @NEBVSIN</a>
+                <a href="mailto:nebvsinstudio@gmail.com">nebvsinstudio@gmail.com</a>
+            </div>
+            <p>&copy; 2026 NEBVSIN. {{ $storefrontLayoutCopy['footer_rights'] ?? 'All rights reserved.' }}</p>
+        </footer>
+    </div>
 
     @if ($cartDrawerOpen)
         <script>
@@ -318,6 +326,22 @@
             }, { passive: true });
 
             window.addEventListener('resize', syncSectionActiveFromScroll);
+        }());
+    </script>
+    <script>
+        (function () {
+            var header = document.querySelector('.site-header');
+
+            if (!header) {
+                return;
+            }
+
+            function setHeaderHeight() {
+                document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+            }
+
+            setHeaderHeight();
+            window.addEventListener('resize', setHeaderHeight);
         }());
     </script>
 </body>

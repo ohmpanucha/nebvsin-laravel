@@ -69,8 +69,12 @@
         $descriptionLines = array_values(array_filter(preg_split('/\r\n|\r|\n/', (string) ($product['description'] ?? ''))));
         $sizes = ['S', 'M', 'L', 'XL', '2XL'];
         $limitedQty = (int) ($product['limited_qty'] ?? 0);
+        $editionTotal = (int) ($product['edition_total'] ?? 0);
+        $limitedTotal = $editionTotal > 0 ? $editionTotal : $limitedQty;
         $paidSoldQty = (int) ($product['paid_sold_qty'] ?? 0);
         $soldProgress = $limitedQty > 0 ? min($paidSoldQty, $limitedQty).' / '.$limitedQty : null;
+        $isSignature = ($product['tier'] ?? '') === 'signature';
+        $productStory = trim((string) ($product['story'] ?: $product['description']));
         $sizeChart = [
             ['size' => 'S', 'chest' => '52', 'length' => '69', 'shoulder' => '49'],
             ['size' => 'M', 'chest' => '55', 'length' => '72', 'shoulder' => '51'],
@@ -108,10 +112,14 @@
                 @endif
             </div>
 
-            <article class="detail-info">
+            <article class="detail-info detail-info--{{ $product['tier'] }}">
                 <p class="detail-kicker">{{ $copy['eyebrow'] }}</p>
+                <p class="detail-tier-line">
+                    <span class="tier-badge tier-badge--{{ $product['tier'] }}">{{ $product['tier_number'] }} / {{ $product['tier_label'] }}</span>
+                </p>
                 <h1 class="detail-title">{{ $product['name'] }}</h1>
                 <p class="detail-price">{{ $product['price_label'] }}</p>
+                <p class="detail-tier-tagline">{{ $product['tier_tagline'] }}</p>
 
                 <div class="detail-desc">
                     @forelse ($descriptionLines as $line)
@@ -121,14 +129,30 @@
                     @endforelse
                 </div>
 
+                @if ($isSignature)
+                    <section class="signature-panel" aria-label="Signature edition details">
+                        <p class="detail-label">LIMITED EDITION</p>
+                        @if ($limitedTotal > 0)
+                            <strong>{{ $limitedTotal }} PIECES WORLDWIDE</strong>
+                        @else
+                            <strong>COLLECTIBLE PIECE</strong>
+                        @endif
+                        <span>NO RESTOCK</span>
+                        <span>PREMIUM PACKAGING INCLUDED</span>
+                        @if (!empty($product['edition_label']))
+                            <p>CURRENT PIECE {{ $product['edition_label'] }}</p>
+                        @endif
+                    </section>
+                @endif
+
                 <div class="detail-meta-grid">
                     <div class="detail-meta-card">
                         <p class="detail-label">STATUS</p>
-                        <p>{{ $product['coming_soon'] ? ($copy['coming_soon']) : 'READY FOR DROP' }}</p>
+                        <p>{{ $product['coming_soon'] ? ($copy['coming_soon']) : strtoupper(str_replace('_', ' ', $product['status'] ?? 'available')) }}</p>
                     </div>
                     <div class="detail-meta-card">
-                        <p class="detail-label">SLUG</p>
-                        <p>{{ $product['slug'] }}</p>
+                        <p class="detail-label">LEVEL</p>
+                        <p>{{ $product['tier_label'] }}</p>
                     </div>
                 </div>
 
@@ -173,6 +197,15 @@
             </article>
         </section>
 
+        @if (in_array($product['tier'] ?? '', ['core', 'signature'], true) && $productStory !== '')
+            <section class="product-story reveal in-view" aria-labelledby="product-story-title">
+                <div class="section-head">
+                    <h2 id="product-story-title" class="detail-label">PRODUCT STORY</h2>
+                </div>
+                <p>{{ $productStory }}</p>
+            </section>
+        @endif
+
         <section class="size-chart reveal in-view" aria-labelledby="size-chart-title">
             <div class="section-head">
                 <h2 id="size-chart-title" class="detail-label">SIZE CHART</h2>
@@ -202,12 +235,12 @@
         </section>
 
         <section class="product-info-grid reveal in-view">
-            <article class="product-copy-card" aria-labelledby="shipping-info-title">
+            {{-- <article class="product-copy-card" aria-labelledby="shipping-info-title">
                 <div class="section-head">
                     <h2 id="shipping-info-title" class="detail-label">{{ $copy['shipping_title'] }}</h2>
                 </div>
                 <p class="product-copy-body">{{ $copy['shipping_copy'] }}</p>
-            </article>
+            </article> --}}
 
             <article class="product-copy-card" aria-labelledby="faq-title">
                 <div class="section-head">

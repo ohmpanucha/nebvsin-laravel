@@ -73,6 +73,11 @@
                             @csrf
                             <input name="name" type="text" placeholder="Name" value="{{ $createProductHasOldInput ? old('name') : '' }}" required>
                             <input name="price_thb" type="number" min="0" placeholder="Price THB" value="{{ $createProductHasOldInput ? old('price_thb') : '' }}" required>
+                            <select name="tier" required>
+                                @foreach (\App\Support\ProductTierConfig::all() as $tierKey => $tier)
+                                    <option value="{{ $tierKey }}" {{ ($createProductHasOldInput ? old('tier', 'core') : 'core') === $tierKey ? 'selected' : '' }}>{{ $tier['label'] }}</option>
+                                @endforeach
+                            </select>
                             <input name="alt" type="text" placeholder="Alt text" value="{{ $createProductHasOldInput ? old('alt') : '' }}">
                             <div class="admin-product-image-preview" data-admin-product-image-preview>
                                 <img src="" alt="Product preview" data-admin-product-image-preview-img hidden>
@@ -90,6 +95,80 @@
                             </div>
                             <textarea name="description" placeholder="Description">{{ $createProductHasOldInput ? old('description') : '' }}</textarea>
                             <button type="submit" class="admin-action-btn">Create Product</button>
+                        </form>
+                    </section>
+                @endif
+
+                @if ($moduleKey === 'home')
+                    @php
+                        $homeContentRow = $moduleData['content'] ?? [];
+                        $homeField = function (string $field) use ($homeContentRow) {
+                            return old($field, $homeContentRow[$field] ?? '');
+                        };
+                    @endphp
+                    <section class="admin-form-card">
+                        <h2 class="admin-section-title">Home Page Content</h2>
+                        <form method="post" action="{{ route('admin.home.update', ['lang' => $storefrontLocale]) }}" class="admin-form-grid" enctype="multipart/form-data">
+                            @csrf
+                            @method('PATCH')
+
+                            <h3 class="admin-section-title">Hero</h3>
+                            <input name="hero_eyebrow" type="text" placeholder="Eyebrow" value="{{ $homeField('hero_eyebrow') }}">
+                            <textarea name="hero_subtitle" placeholder="Subtitle">{{ $homeField('hero_subtitle') }}</textarea>
+                            <input name="hero_cta_primary_label" type="text" placeholder="Primary button label" value="{{ $homeField('hero_cta_primary_label') }}">
+                            <input name="hero_cta_secondary_label" type="text" placeholder="Secondary button label" value="{{ $homeField('hero_cta_secondary_label') }}">
+                            @if (!empty($homeContentRow['hero_image']))
+                                <div class="admin-product-image-preview"><img src="{{ $homeContentRow['hero_image'] }}" alt="Hero image override"></div>
+                            @endif
+                            <label class="admin-upload-field">
+                                <span>Hero image override (upload)</span>
+                                <input name="hero_image_file" type="file" accept="image/png,image/jpeg,image/webp">
+                            </label>
+                            <label class="admin-check"><input type="checkbox" name="hero_image_clear" value="1"> <span>Clear override (use auto product image)</span></label>
+
+                            <h3 class="admin-section-title">Featured Core</h3>
+                            <input name="feature_eyebrow" type="text" placeholder="Eyebrow" value="{{ $homeField('feature_eyebrow') }}">
+                            <input name="feature_title" type="text" placeholder="Section title" value="{{ $homeField('feature_title') }}">
+                            <textarea name="feature_note" placeholder="Section note">{{ $homeField('feature_note') }}</textarea>
+                            <input name="feature_kicker" type="text" placeholder="Kicker" value="{{ $homeField('feature_kicker') }}">
+                            <input name="feature_heading_line1" type="text" placeholder="Heading line 1" value="{{ $homeField('feature_heading_line1') }}">
+                            <input name="feature_heading_line2" type="text" placeholder="Heading line 2" value="{{ $homeField('feature_heading_line2') }}">
+                            <textarea name="feature_copy" placeholder="Copy">{{ $homeField('feature_copy') }}</textarea>
+                            <input name="feature_cta_label" type="text" placeholder="Button label" value="{{ $homeField('feature_cta_label') }}">
+                            @if (!empty($homeContentRow['feature_image']))
+                                <div class="admin-product-image-preview"><img src="{{ $homeContentRow['feature_image'] }}" alt="Featured core image override"></div>
+                            @endif
+                            <label class="admin-upload-field">
+                                <span>Featured core image override (upload)</span>
+                                <input name="feature_image_file" type="file" accept="image/png,image/jpeg,image/webp">
+                            </label>
+                            <label class="admin-check"><input type="checkbox" name="feature_image_clear" value="1"> <span>Clear override (use auto product image)</span></label>
+
+                            <h3 class="admin-section-title">Signature</h3>
+                            <input name="signature_kicker" type="text" placeholder="Kicker" value="{{ $homeField('signature_kicker') }}">
+                            <input name="signature_heading_line1" type="text" placeholder="Heading line 1" value="{{ $homeField('signature_heading_line1') }}">
+                            <input name="signature_heading_line2" type="text" placeholder="Heading line 2" value="{{ $homeField('signature_heading_line2') }}">
+                            <input name="signature_limited_line1" type="text" placeholder="Limited edition line 1" value="{{ $homeField('signature_limited_line1') }}">
+                            <input name="signature_limited_line2" type="text" placeholder="Limited edition line 2" value="{{ $homeField('signature_limited_line2') }}">
+                            <input name="signature_limited_line3" type="text" placeholder="Limited edition line 3" value="{{ $homeField('signature_limited_line3') }}">
+                            <textarea name="signature_copy" placeholder="Copy">{{ $homeField('signature_copy') }}</textarea>
+                            <input name="signature_cta_label" type="text" placeholder="Button label" value="{{ $homeField('signature_cta_label') }}">
+                            @if (!empty($homeContentRow['signature_image']))
+                                <div class="admin-product-image-preview"><img src="{{ $homeContentRow['signature_image'] }}" alt="Signature image override"></div>
+                            @endif
+                            <label class="admin-upload-field">
+                                <span>Signature image override (upload)</span>
+                                <input name="signature_image_file" type="file" accept="image/png,image/jpeg,image/webp">
+                            </label>
+                            <label class="admin-check"><input type="checkbox" name="signature_image_clear" value="1"> <span>Clear override (use auto product image)</span></label>
+
+                            <h3 class="admin-section-title">Manifesto</h3>
+                            <input name="manifesto_eyebrow" type="text" placeholder="Eyebrow" value="{{ $homeField('manifesto_eyebrow') }}">
+                            <input name="manifesto_line1" type="text" placeholder="Line 1" value="{{ $homeField('manifesto_line1') }}">
+                            <input name="manifesto_line2_prefix" type="text" placeholder="Line 2 prefix" value="{{ $homeField('manifesto_line2_prefix') }}">
+                            <input name="manifesto_highlight" type="text" placeholder="Highlighted word (shown in red)" value="{{ $homeField('manifesto_highlight') }}">
+
+                            <button type="submit" class="admin-action-btn">Save Home Content</button>
                         </form>
                     </section>
                 @endif
@@ -450,6 +529,7 @@
                                         <th>IMAGE</th>
                                         <th>NAME</th>
                                         <th>PRICE</th>
+                                        <th>TIER</th>
                                         <th>LIMITED</th>
                                         <th>PUBLIC</th>
                                         <th>SOON</th>
@@ -472,6 +552,7 @@
                                             </td>
                                             <td>{{ $row['name'] }}</td>
                                             <td>{{ $row['price_thb'] }}</td>
+                                            <td>{{ strtoupper($row['tier'] ?? 'core') }}</td>
                                             <td>{{ $row['limited_qty'] }}</td>
                                             <td>{{ $row['is_public'] ? 'YES' : 'NO' }}</td>
                                             <td>{{ $row['coming_soon'] ? 'YES' : 'NO' }}</td>
@@ -485,6 +566,7 @@
                                                         data-product-id="{{ $row['id'] }}"
                                                         data-product-name="{{ e($row['name']) }}"
                                                         data-product-price="{{ $row['price_thb'] }}"
+                                                        data-product-tier="{{ $row['tier'] ?? 'core' }}"
                                                         data-product-image="{{ e($row['image']) }}"
                                                         data-product-alt="{{ e((string) $row['alt']) }}"
                                                         data-product-sort-order="{{ $row['sort_order'] }}"
@@ -840,7 +922,7 @@
                             </table>
                         </div>
                     @endif
-                @else
+                @elseif ($moduleKey !== 'home')
                     <p class="admin-empty">{{ $adminCopy['empty'] ?? 'No records available yet.' }}</p>
                 @endif
             </div>
@@ -1399,6 +1481,11 @@
                     @method('PATCH')
                     <input name="name" type="text" value="{{ old('name', $editingProduct['name'] ?? '') }}" placeholder="Name" required>
                     <input name="price_thb" type="number" min="0" value="{{ old('price_thb', $editingProduct['price_thb'] ?? '') }}" placeholder="Price THB" required>
+                    <select name="tier" required>
+                        @foreach (\App\Support\ProductTierConfig::all() as $tierKey => $tier)
+                            <option value="{{ $tierKey }}" {{ old('tier', $editingProduct['tier'] ?? 'core') === $tierKey ? 'selected' : '' }}>{{ $tier['label'] }}</option>
+                        @endforeach
+                    </select>
                     <label class="admin-upload-field">
                         <span>Upload new image</span>
                         <input name="image_file" type="file" accept="image/png,image/jpeg,image/webp" data-admin-product-image-file-input>
@@ -2096,6 +2183,7 @@
                 var fields = {
                     name: form.querySelector('[name="name"]'),
                     price: form.querySelector('[name="price_thb"]'),
+                    tier: form.querySelector('[name="tier"]'),
                     image: form.querySelector('[name="image"]'),
                     alt: form.querySelector('[name="alt"]'),
                     sortOrder: form.querySelector('[name="sort_order"]'),
@@ -2116,6 +2204,7 @@
                     heading.textContent = 'Editing product #' + productId;
                     if (fields.name) fields.name.value = button.getAttribute('data-product-name') || '';
                     if (fields.price) fields.price.value = button.getAttribute('data-product-price') || '';
+                    if (fields.tier) fields.tier.value = button.getAttribute('data-product-tier') || 'core';
                     if (fields.alt) fields.alt.value = button.getAttribute('data-product-alt') || '';
                     if (fields.sortOrder) fields.sortOrder.value = button.getAttribute('data-product-sort-order') || '0';
                     if (fields.limitedQty) fields.limitedQty.value = button.getAttribute('data-product-limited-qty') || '0';

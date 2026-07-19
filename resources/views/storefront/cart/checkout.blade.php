@@ -52,7 +52,15 @@
                                                     >
                                                 @endif
                                             </td>
-                                            <td>{{ $item['name'] }}</td>
+                                            <td>
+                                                <span class="checkout-tier-label">{{ $item['tier_label'] ?? 'CORE' }}</span>
+                                                <span>{{ $item['name'] }}</span>
+                                                @if (($item['tier'] ?? '') === 'signature')
+                                                    <span class="checkout-signature-note">SIGNATURE PRODUCT / PREMIUM PACKAGING INCLUDED</span>
+                                                @elseif ($item['is_limited'] ?? false)
+                                                    <span class="checkout-signature-note">LIMITED EDITION</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $item['size'] ?? '-' }}</td>
                                             <td>{{ $item['qty'] }}</td>
                                             <td>{{ $formatAmount($item['price_thb']) }}</td>

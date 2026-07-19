@@ -297,6 +297,7 @@ class StorefrontLocale
                 'admin' => [
                     'kicker' => 'ADMIN',
                     'nav_aria' => 'Admin pages',
+                    'nav_home' => 'HOME PAGE',
                     'nav_procurement' => 'PROCUREMENT',
                     'nav_inventory' => 'INVENTORY',
                     'nav_products' => 'PRODUCTS',
@@ -304,6 +305,8 @@ class StorefrontLocale
                     'nav_payments' => 'PAYMENTS',
                     'nav_shipping' => 'SHIPPING',
                     'nav_orders' => 'ORDERS',
+                    'title_home' => 'HOME PAGE CONTENT',
+                    'description_home' => 'Edit the text and image overrides shown on the storefront home page (hero, featured core, signature, manifesto).',
                     'title_procurement' => 'PROCUREMENT',
                     'description_procurement' => 'Supplier, purchase order, and goods receipt overview from the Laravel side.',
                     'title_inventory' => 'INVENTORY',
@@ -614,6 +617,7 @@ class StorefrontLocale
                 'admin' => [
                     'kicker' => 'แอดมิน',
                     'nav_aria' => 'หน้าแอดมิน',
+                    'nav_home' => 'หน้าแรก',
                     'nav_procurement' => 'จัดซื้อ',
                     'nav_inventory' => 'คลังสินค้า',
                     'nav_products' => 'สินค้า',
@@ -621,6 +625,8 @@ class StorefrontLocale
                     'nav_payments' => 'การชำระเงิน',
                     'nav_shipping' => 'การจัดส่ง',
                     'nav_orders' => 'ออเดอร์',
+                    'title_home' => 'จัดการหน้าแรก',
+                    'description_home' => 'แก้ไขข้อความและรูปภาพที่แสดงในหน้าแรกของร้าน (hero, featured core, signature, manifesto)',
                     'title_procurement' => 'จัดซื้อ',
                     'description_procurement' => 'ภาพรวม supplier, purchase order และ goods receipt ฝั่ง Laravel',
                     'title_inventory' => 'คลังสินค้า',
