@@ -17,7 +17,12 @@
     @if (!empty($robotsMeta))
         <meta name="robots" content="{{ $robotsMeta }}">
     @endif
-    <link rel="stylesheet" href="{{ asset('css/storefront.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('css/storefront.css') }}"> --}}
+     @php
+        $storefrontCssPath = public_path('css/storefront.css');
+        $storefrontCssVersion = is_file($storefrontCssPath) ? filemtime($storefrontCssPath) : time();
+    @endphp
+    <link rel="stylesheet" href="{{ asset('css/storefront.css') }}?v={{ $storefrontCssVersion }}">
     @stack('meta')
 </head>
 @php
