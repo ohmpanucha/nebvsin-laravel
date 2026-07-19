@@ -51,7 +51,16 @@ class ProductsAdminService
             ->orderBy('p.id')
             ->get();
 
-        return $products->map(function ($item) use ($hasTier) {
+        $imageCounts = Schema::hasTable('product_images')
+            ? DB::table('product_images')
+                ->select('product_id', DB::raw('COUNT(*) AS image_count'))
+                ->groupBy('product_id')
+                ->pluck('image_count', 'product_id')
+            : collect();
+
+        $imagesByProduct = $this->imagesByProduct();
+
+        return $products->map(function ($item) use ($hasTier, $imageCounts, $imagesByProduct) {
             return [
                 'id' => $item->id,
                 'name' => $item->name,
@@ -65,54 +74,80 @@ class ProductsAdminService
                 'is_public' => (bool) $item->is_public,
                 'coming_soon' => (bool) $item->coming_soon,
                 'paid_sold_qty' => (int) $item->paid_sold_qty,
+                'image_count' => (int) ($imageCounts[$item->id] ?? (! empty($item->image) ? 1 : 0)),
+                'gallery_images' => $imagesByProduct[$item->id] ?? [],
             ];
         })->all();
     }
 
     public function create(array $input): void
     {
-        $payload = $this->normalizePayload($input, false);
-        $name = $payload['name'];
-        $image = $payload['image'];
-        $description = $payload['description'] ?? null;
+        DB::transaction(function () use ($input) {
+            $payload = $this->normalizePayload($input, false);
+            $name = $payload['name'];
+            $image = $payload['image'];
+            $description = $payload['description'] ?? null;
 
-        if (Schema::hasColumn('products', 'slug')) {
-            unset($payload['slug']);
-        }
+            if (Schema::hasColumn('products', 'slug')) {
+                unset($payload['slug']);
+            }
 
-        $productId = (int) DB::table('products')->insertGetId($payload);
+            $productId = (int) DB::table('products')->insertGetId($payload);
 
-        $updates = [];
-        if (Schema::hasColumn('products', 'slug')) {
-            $updates['slug'] = Str::slug($name).'-'.$productId;
-        }
-        if (Schema::hasColumn('products', 'meta_title')) {
-            $updates['meta_title'] = $name.' | NEBVSIN';
-        }
-        if (Schema::hasColumn('products', 'meta_description')) {
-            $updates['meta_description'] = $description;
-        }
-        if (Schema::hasColumn('products', 'og_image')) {
-            $updates['og_image'] = $image;
-        }
+            $updates = [];
+            if (Schema::hasColumn('products', 'slug')) {
+                $updates['slug'] = Str::slug($name).'-'.$productId;
+            }
+            if (Schema::hasColumn('products', 'meta_title')) {
+                $updates['meta_title'] = $name.' | NEBVSIN';
+            }
+            if (Schema::hasColumn('products', 'meta_description')) {
+                $updates['meta_description'] = $description;
+            }
+            if (Schema::hasColumn('products', 'og_image')) {
+                $updates['og_image'] = $image;
+            }
 
-        if ($updates) {
-            DB::table('products')->where('id', $productId)->update($updates);
-        }
+            if ($updates) {
+                DB::table('products')->where('id', $productId)->update($updates);
+            }
+
+            $this->syncProductImages(
+                $productId,
+                $image,
+                $payload['alt'] ?? null,
+                $input['gallery_images'] ?? []
+            );
+        });
     }
 
     public function update(int $productId, array $input): void
     {
-        $payload = $this->normalizePayload($input, true);
+        DB::transaction(function () use ($productId, $input) {
+            $payload = $this->normalizePayload($input, true);
 
-        if (! $payload) {
-            throw new \InvalidArgumentException('No fields to update.');
-        }
+            $exists = DB::table('products')->where('id', $productId)->exists();
+            if (! $exists) {
+                throw new \RuntimeException('Product not found.');
+            }
 
-        $updated = DB::table('products')->where('id', $productId)->update($payload);
-        if (! $updated) {
-            throw new \RuntimeException('Product not found.');
-        }
+            if ($payload) {
+                DB::table('products')->where('id', $productId)->update($payload);
+            }
+
+            if ($payload || ! empty($input['gallery_images'])) {
+                $product = DB::table('products')
+                    ->where('id', $productId)
+                    ->first(['image', 'alt']);
+
+                $this->syncProductImages(
+                    $productId,
+                    $product->image ?? '',
+                    $product->alt ?? null,
+                    $input['gallery_images'] ?? []
+                );
+            }
+        });
     }
 
     public function delete(int $productId): void
@@ -124,6 +159,10 @@ class ProductsAdminService
 
             if (Schema::hasTable('purchase_order_items')) {
                 DB::table('purchase_order_items')->where('product_id', $productId)->delete();
+            }
+
+            if (Schema::hasTable('product_images')) {
+                DB::table('product_images')->where('product_id', $productId)->delete();
             }
 
             $deleted = DB::table('products')->where('id', $productId)->delete();
@@ -218,6 +257,95 @@ class ProductsAdminService
         }
 
         return $payload;
+    }
+
+    protected function syncProductImages(int $productId, string $primaryImage, ?string $primaryAlt, array $newDetailImages): void
+    {
+        if (! Schema::hasTable('product_images')) {
+            return;
+        }
+
+        $primaryImage = trim($primaryImage);
+        if ($primaryImage === '') {
+            return;
+        }
+
+        $existingDetails = DB::table('product_images')
+            ->where('product_id', $productId)
+            ->where('is_primary', 0)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('image_path')
+            ->all();
+
+        $details = [];
+        foreach (array_merge($existingDetails, $newDetailImages) as $path) {
+            $path = trim((string) $path);
+            if ($path === '' || $path === $primaryImage || in_array($path, $details, true)) {
+                continue;
+            }
+
+            $details[] = $path;
+            if (count($details) >= 3) {
+                break;
+            }
+        }
+
+        DB::table('product_images')->where('product_id', $productId)->delete();
+
+        $now = now();
+        DB::table('product_images')->insert([
+            'product_id' => $productId,
+            'image_path' => $primaryImage,
+            'alt' => $primaryAlt,
+            'sort_order' => 0,
+            'is_primary' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        foreach ($details as $index => $path) {
+            DB::table('product_images')->insert([
+                'product_id' => $productId,
+                'image_path' => $path,
+                'alt' => null,
+                'sort_order' => $index + 1,
+                'is_primary' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+    }
+
+    protected function imagesByProduct(): array
+    {
+        if (! Schema::hasTable('product_images')) {
+            return [];
+        }
+
+        return DB::table('product_images')
+            ->select('product_id', 'image_path', 'alt', 'sort_order', 'is_primary')
+            ->orderBy('product_id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('product_id')
+            ->map(function ($images) {
+                return $images->map(function ($image) {
+                    return [
+                        'path' => $image->image_path,
+                        'alt' => $image->alt,
+                        'sort_order' => (int) $image->sort_order,
+                        'is_primary' => (bool) $image->is_primary,
+                    ];
+                })
+                    ->reject(function (array $image) {
+                        return $image['is_primary'];
+                    })
+                    ->values()
+                    ->all();
+            })
+            ->all();
     }
 
     protected function nullableString($value): ?string

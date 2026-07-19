@@ -2992,6 +2992,7 @@ h1 {
   display: grid;
   place-items: center;
   padding: var(--space-4);
+  overflow: auto;
 }
 
 .admin-slip-modal[hidden] {
@@ -3106,6 +3107,7 @@ h1 {
 }
 
 .admin-product-image-preview,
+.admin-product-gallery-preview,
 .admin-product-edit-checks,
 .admin-product-edit-actions {
   grid-column: 1 / -1;
@@ -3138,6 +3140,55 @@ h1 {
   font-size: 0.74rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.admin-product-gallery-preview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  min-height: 6rem;
+  border: 1px solid #232323;
+  background: #080808;
+  padding: 0.7rem;
+}
+
+.admin-product-gallery-empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-product-gallery-tile {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #303030;
+  background: #050505;
+  overflow: hidden;
+}
+
+.admin-product-gallery-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-product-gallery-tile span {
+  position: absolute;
+  left: 0.35rem;
+  bottom: 0.35rem;
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--fg);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0.2rem 0.35rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
 }
 
 .admin-upload-field {
@@ -4865,6 +4916,10 @@ h1 {
   .admin-shipping-detail-form,
   .admin-order-detail-form {
     grid-template-columns: 1fr;
+  }
+
+  .admin-product-gallery-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .purchase-order-toggle {

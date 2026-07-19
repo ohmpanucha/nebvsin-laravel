@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -22,4 +23,11 @@ class Product extends Model
         'is_public' => 'boolean',
         'coming_soon' => 'boolean',
     ];
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class, 'product_id', 'id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
 }

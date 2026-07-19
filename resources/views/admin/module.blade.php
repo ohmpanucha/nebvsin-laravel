@@ -87,6 +87,13 @@
                                 <span>Upload image</span>
                                 <input name="image_file" type="file" accept="image/png,image/jpeg,image/webp" {{ $createProductHasOldInput ? '' : 'required' }} data-admin-product-image-file-input>
                             </label>
+                            <label class="admin-upload-field">
+                                <span>Upload detail images (max 3)</span>
+                                <input name="gallery_files[]" type="file" accept="image/png,image/jpeg,image/webp" multiple data-admin-product-gallery-file-input>
+                            </label>
+                            <div class="admin-product-gallery-preview" data-admin-product-gallery-preview>
+                                <p class="admin-product-gallery-empty" data-admin-product-gallery-empty>ยังไม่มีรูปเพิ่มเติม</p>
+                            </div>
                             <input name="sort_order" type="number" placeholder="Sort order" value="{{ $createProductHasOldInput ? old('sort_order', 0) : 0 }}">
                             <input name="limited_qty" type="number" min="0" placeholder="Limited qty" value="{{ $createProductHasOldInput ? old('limited_qty', 40) : 40 }}">
                             <div class="admin-check-group">
@@ -531,6 +538,7 @@
                                         <th>PRICE</th>
                                         <th>TIER</th>
                                         <th>LIMITED</th>
+                                        <th>IMAGES</th>
                                         <th>PUBLIC</th>
                                         <th>SOON</th>
                                         <th>PAID SOLD</th>
@@ -554,6 +562,7 @@
                                             <td>{{ $row['price_thb'] }}</td>
                                             <td>{{ strtoupper($row['tier'] ?? 'core') }}</td>
                                             <td>{{ $row['limited_qty'] }}</td>
+                                            <td>{{ $row['image_count'] ?? 1 }}</td>
                                             <td>{{ $row['is_public'] ? 'YES' : 'NO' }}</td>
                                             <td>{{ $row['coming_soon'] ? 'YES' : 'NO' }}</td>
                                             <td>{{ $row['paid_sold_qty'] }}</td>
@@ -574,6 +583,7 @@
                                                         data-product-is-public="{{ $row['is_public'] ? '1' : '0' }}"
                                                         data-product-coming-soon="{{ $row['coming_soon'] ? '1' : '0' }}"
                                                         data-product-description="{{ e((string) $row['description']) }}"
+                                                        data-product-gallery='@json($row['gallery_images'] ?? [])'
                                                         data-update-action="{{ route('admin.products.update', ['productId' => $row['id'], 'lang' => $storefrontLocale]) }}"
                                                     >
                                                         Edit
@@ -1475,6 +1485,7 @@
                     class="admin-form-grid admin-product-edit-form"
                     data-admin-product-edit-form
                     data-admin-product-image-src="{{ old('image', $editingProduct['image'] ?? '') }}"
+                    data-admin-product-gallery='@json($editingProduct['gallery_images'] ?? [])'
                     enctype="multipart/form-data"
                 >
                     @csrf
@@ -1490,6 +1501,13 @@
                         <span>Upload new image</span>
                         <input name="image_file" type="file" accept="image/png,image/jpeg,image/webp" data-admin-product-image-file-input>
                     </label>
+                    <label class="admin-upload-field">
+                        <span>Add detail images (max 3 total)</span>
+                        <input name="gallery_files[]" type="file" accept="image/png,image/jpeg,image/webp" multiple data-admin-product-gallery-file-input>
+                    </label>
+                    <div class="admin-product-gallery-preview" data-admin-product-gallery-preview>
+                        <p class="admin-product-gallery-empty" data-admin-product-gallery-empty>ยังไม่มีรูปเพิ่มเติม</p>
+                    </div>
                     <input name="alt" type="text" value="{{ old('alt', $editingProduct['alt'] ?? '') }}" placeholder="Alt text">
                     <div class="admin-product-image-preview admin-product-edit-preview" data-admin-product-image-preview>
                         <img src="" alt="Product preview" data-admin-product-image-preview-img hidden>
@@ -2174,7 +2192,139 @@
                     return { input: input, fileInput: fileInput, sync: sync, showSource: showSource };
                 };
 
+                var renderGallery = function (scope, images, emptyMessage) {
+                    if (!scope) {
+                        return;
+                    }
+
+                    var gallery = scope.querySelector('[data-admin-product-gallery-preview]');
+                    var empty = scope.querySelector('[data-admin-product-gallery-empty]');
+
+                    if (!gallery || !empty) {
+                        return;
+                    }
+
+                    gallery.querySelectorAll('[data-admin-product-gallery-item]').forEach(function (item) {
+                        item.remove();
+                    });
+
+                    var visibleImages = Array.isArray(images) ? images.filter(function (item) {
+                        return item && String(item.path || item.url || '').trim() !== '';
+                    }) : [];
+
+                    if (!visibleImages.length) {
+                        empty.hidden = false;
+                        empty.textContent = emptyMessage || 'ยังไม่มีรูปเพิ่มเติม';
+                        return;
+                    }
+
+                    empty.hidden = true;
+
+                    var detailNumber = 0;
+                    visibleImages.forEach(function (item, index) {
+                        var path = String(item.path || item.url || '').trim();
+                        var tile = document.createElement('div');
+                        var img = document.createElement('img');
+                        var label = document.createElement('span');
+
+                        tile.className = 'admin-product-gallery-tile';
+                        tile.setAttribute('data-admin-product-gallery-item', '');
+                        img.src = path;
+                        img.alt = item.alt || ('Product image ' + (index + 1));
+                        if (item.is_primary) {
+                            label.textContent = 'MAIN';
+                        } else {
+                            detailNumber += 1;
+                            label.textContent = 'DETAIL ' + detailNumber;
+                        }
+
+                        tile.appendChild(img);
+                        tile.appendChild(label);
+                        gallery.appendChild(tile);
+                    });
+                };
+
+                var parseGallery = function (value) {
+                    try {
+                        var parsed = JSON.parse(value || '[]');
+                        return Array.isArray(parsed) ? parsed : [];
+                    } catch (error) {
+                        try {
+                            var textarea = document.createElement('textarea');
+                            textarea.innerHTML = value || '[]';
+                            var decoded = JSON.parse(textarea.value || '[]');
+                            return Array.isArray(decoded) ? decoded : [];
+                        } catch (decodeError) {
+                            return [];
+                        }
+                    }
+                };
+
+                var bindGalleryPreview = function (scope, initialImages) {
+                    if (!scope) {
+                        return null;
+                    }
+
+                    var fileInput = scope.querySelector('[data-admin-product-gallery-file-input]');
+                    var currentImages = initialImages || [];
+                    renderGallery(scope, currentImages, 'ยังไม่มีรูปเพิ่มเติม');
+
+                    if (!fileInput) {
+                        return { fileInput: null, render: function (images) { renderGallery(scope, images || []); } };
+                    }
+
+                    fileInput.addEventListener('change', function () {
+                        var files = Array.prototype.slice.call(fileInput.files || []).slice(0, 3);
+                        if (!files.length) {
+                            renderGallery(scope, currentImages, 'ยังไม่มีรูปเพิ่มเติม');
+                            return;
+                        }
+
+                        var previews = [];
+                        var remaining = files.length;
+
+                        files.forEach(function (file) {
+                            if (!String(file.type || '').match(/^image\//)) {
+                                remaining -= 1;
+                                if (remaining === 0) {
+                                    renderGallery(scope, previews, 'ไม่มีไฟล์รูปเพิ่มเติมที่ใช้ได้');
+                                }
+                                return;
+                            }
+
+                            var reader = new FileReader();
+                            reader.onload = function (event) {
+                                previews.push({
+                                    path: event.target && event.target.result ? event.target.result : '',
+                                    alt: file.name,
+                                    is_primary: false
+                                });
+                                remaining -= 1;
+                                if (remaining === 0) {
+                                    renderGallery(scope, previews, 'ไม่มีไฟล์รูปเพิ่มเติมที่ใช้ได้');
+                                }
+                            };
+                            reader.onerror = function () {
+                                remaining -= 1;
+                                if (remaining === 0) {
+                                    renderGallery(scope, previews, 'ไม่มีไฟล์รูปเพิ่มเติมที่ใช้ได้');
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    });
+
+                    return {
+                        fileInput: fileInput,
+                        render: function (images) {
+                            currentImages = images || [];
+                            renderGallery(scope, currentImages);
+                        }
+                    };
+                };
+
                 bindImagePreview(createForm);
+                bindGalleryPreview(createForm, []);
 
                 if (!modal || !form || !heading) {
                     return;
@@ -2193,6 +2343,7 @@
                     description: form.querySelector('[name="description"]')
                 };
                 var editImagePreview = bindImagePreview(form);
+                var editGalleryPreview = bindGalleryPreview(form, parseGallery(form.getAttribute('data-admin-product-gallery') || '[]'));
 
                 var closeModal = function () {
                     modal.hidden = true;
@@ -2214,6 +2365,9 @@
                     form.setAttribute('data-admin-product-image-src', button.getAttribute('data-product-image') || '');
                     if (editImagePreview && editImagePreview.fileInput) editImagePreview.fileInput.value = '';
                     if (editImagePreview) editImagePreview.sync(button.getAttribute('data-product-image') || '');
+                    form.setAttribute('data-admin-product-gallery', button.getAttribute('data-product-gallery') || '[]');
+                    if (editGalleryPreview && editGalleryPreview.fileInput) editGalleryPreview.fileInput.value = '';
+                    if (editGalleryPreview) editGalleryPreview.render(parseGallery(button.getAttribute('data-product-gallery') || '[]'));
                     modal.hidden = false;
                 };
 

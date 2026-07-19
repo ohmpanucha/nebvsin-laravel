@@ -509,7 +509,7 @@ class AdminController extends Controller
 
     protected function prepareProductInput(Request $request, bool $partial): array
     {
-        $input = $request->except(['image_file']);
+        $input = $request->except(['image_file', 'gallery_files']);
         /** @var UploadedFile|null $file */
         $file = $request->file('image_file');
 
@@ -517,6 +517,17 @@ class AdminController extends Controller
             $input['image'] = $this->storeProductImage($file);
         } elseif (! $partial) {
             $input['image'] = trim((string) ($input['image'] ?? ''));
+        }
+
+        $galleryImages = [];
+        foreach ((array) $request->file('gallery_files', []) as $galleryFile) {
+            if ($galleryFile instanceof UploadedFile && $galleryFile->isValid()) {
+                $galleryImages[] = $this->storeProductImage($galleryFile);
+            }
+        }
+
+        if ($galleryImages) {
+            $input['gallery_images'] = array_slice($galleryImages, 0, 3);
         }
 
         return $input;

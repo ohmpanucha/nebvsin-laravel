@@ -72,9 +72,15 @@ class StorefrontProductRepository
     {
         try {
             if (Schema::hasTable('products')) {
-                return Product::query()
+                $query = Product::query()
                     ->orderBy('sort_order')
-                    ->orderBy('id')
+                    ->orderBy('id');
+
+                if (Schema::hasTable('product_images')) {
+                    $query->with('images');
+                }
+
+                return $query
                     ->get()
                     ->map(function (Product $product) {
                         $attributes = $product->getAttributes();
@@ -93,7 +99,7 @@ class StorefrontProductRepository
                             'meta_title' => $product->meta_title,
                             'meta_description' => $product->meta_description,
                             'og_image' => $product->og_image,
-                            'gallery' => $attributes['gallery'] ?? ($attributes['images'] ?? null),
+                            'gallery' => $this->productImagesGallery($product, $attributes),
                             'image_2' => $attributes['image_2'] ?? null,
                             'image_3' => $attributes['image_3'] ?? null,
                             'image_4' => $attributes['image_4'] ?? null,
@@ -160,6 +166,26 @@ class StorefrontProductRepository
         $decoded = json_decode((string) File::get($path), true);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    protected function productImagesGallery(Product $product, array $attributes): array
+    {
+        if ($product->relationLoaded('images')) {
+            $images = $product->images
+                ->map(function ($image) {
+                    return [
+                        'path' => $image->image_path,
+                        'alt' => $image->alt,
+                    ];
+                })
+                ->all();
+
+            if ($images) {
+                return $images;
+            }
+        }
+
+        return $attributes['gallery'] ?? ($attributes['images'] ?? []);
     }
 
     protected function normalizeProduct(array $product): array
