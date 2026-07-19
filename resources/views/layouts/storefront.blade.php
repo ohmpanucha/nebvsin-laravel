@@ -39,7 +39,7 @@
 @endphp
 <body class="{{ $cartDrawerOpen ? 'cart-drawer-open' : '' }}">
     {{-- <a class="skip-link" href="#main-content">{{ $storefrontLayoutCopy['skip_to_content'] ?? 'Skip to content' }}</a> --}}
-    <div class="noise-overlay" aria-hidden="true"></div>
+    {{-- <div class="noise-overlay" aria-hidden="true"></div> --}}
 
     <header class="site-header reveal in-view">
         <div class="header-line-bar">

@@ -92,7 +92,13 @@
                     @elseif ($soldProgress)
                         {{-- <span class="detail-status-badge">{{ $soldProgress }}</span> --}}
                     @endif
-                    <img class="detail-image" src="{{ $product['gallery'][0]['url'] ?? $product['image_url'] }}" alt="{{ $product['alt'] }}" data-detail-main-image>
+                    <img
+                        class="detail-image"
+                        src="{{ $product['gallery'][0]['url'] ?? $product['image_url'] }}"
+                        alt="{{ $product['alt'] }}"
+                        data-detail-main-image
+                        data-zoom="{{ $product['gallery'][0]['url'] ?? $product['image_url'] }}"
+                    >
                 </div>
                 @if (!empty($product['gallery']) && count($product['gallery']) > 1)
                     <div class="detail-gallery" role="list" aria-label="Product gallery">
@@ -258,12 +264,15 @@
 @endsection
 
 @push('meta')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/drift-zoom/1.5.1/drift-basic.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/drift-zoom/1.5.1/Drift.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var inputs = document.querySelectorAll('.size-input');
             var output = document.querySelector('[data-selected-size]');
             var mainImage = document.querySelector('[data-detail-main-image]');
             var thumbs = document.querySelectorAll('[data-detail-thumb]');
+            var imageZoom = null;
 
             if (!inputs.length || !output) {
                 return;
@@ -280,11 +289,28 @@
 
             syncSelectedSize();
 
+            if (mainImage && window.Drift && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                imageZoom = new Drift(mainImage, {
+                    inlinePane: true,
+                    hoverBoundingBox: false,
+                    containInline: true,
+                    sourceAttribute: 'data-zoom',
+                    zoomFactor: 2
+                });
+            }
+
             if (mainImage && thumbs.length) {
                 thumbs.forEach(function (thumb) {
                     thumb.addEventListener('click', function () {
-                        mainImage.src = thumb.getAttribute('data-image-url') || mainImage.src;
+                        var nextImageUrl = thumb.getAttribute('data-image-url') || mainImage.src;
+
+                        mainImage.src = nextImageUrl;
                         mainImage.alt = thumb.getAttribute('data-image-alt') || mainImage.alt;
+                        mainImage.setAttribute('data-zoom', nextImageUrl);
+
+                        if (imageZoom) {
+                            imageZoom.setZoomImageURL(nextImageUrl);
+                        }
 
                         thumbs.forEach(function (item) {
                             item.classList.remove('is-active');

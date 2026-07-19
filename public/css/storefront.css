@@ -1567,6 +1567,7 @@ h1 {
   box-shadow:
     0 32px 80px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: zoom-in;
 }
 
 .detail-image {
@@ -1574,6 +1575,15 @@ h1 {
   aspect-ratio: 4 / 5;
   object-fit: cover;
   display: block;
+}
+
+.detail-image-frame .drift-zoom-pane {
+  background: #050505;
+}
+
+.detail-image-frame .drift-bounding-box {
+  border: 0;
+  background: transparent;
 }
 
 .detail-status-badge {
