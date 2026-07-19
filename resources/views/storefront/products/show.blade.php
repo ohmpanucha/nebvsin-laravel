@@ -76,10 +76,10 @@
         $isSignature = ($product['tier'] ?? '') === 'signature';
         $productStory = trim((string) ($product['story'] ?: $product['description']));
         $sizeChart = [
-            ['size' => 'S', 'chest' => '52', 'length' => '69', 'shoulder' => '49'],
-            ['size' => 'M', 'chest' => '55', 'length' => '72', 'shoulder' => '51'],
-            ['size' => 'L', 'chest' => '58', 'length' => '75', 'shoulder' => '53'],
-            ['size' => 'XL', 'chest' => '61', 'length' => '78', 'shoulder' => '55'],
+            ['size' => 'S', 'chest' => '44', 'length' => '28.5'],
+            ['size' => 'M', 'chest' => '46', 'length' => '29.5'],
+            ['size' => 'L', 'chest' => '48', 'length' => '30'],
+            ['size' => 'XL', 'chest' => '50', 'length' => '30.5'],
         ];
     @endphp
 
@@ -215,9 +215,8 @@
                     <thead>
                         <tr>
                             <th scope="col">SIZE</th>
-                            <th scope="col">CHEST</th>
-                            <th scope="col">LENGTH</th>
-                            <th scope="col">SHOULDER</th>
+                            <th scope="col">CHEST (cm)</th>
+                            <th scope="col">LENGTH (cm)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -226,7 +225,6 @@
                                 <th scope="row">{{ $row['size'] }}</th>
                                 <td>{{ $row['chest'] }}</td>
                                 <td>{{ $row['length'] }}</td>
-                                <td>{{ $row['shoulder'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
