@@ -530,6 +530,11 @@ class AdminController extends Controller
             $input['gallery_images'] = array_slice($galleryImages, 0, 3);
         }
 
+        if ($partial) {
+            $input['is_public'] = $request->has('is_public') ? 1 : 0;
+            $input['coming_soon'] = $request->has('coming_soon') ? 1 : 0;
+        }
+
         return $input;
     }
 
