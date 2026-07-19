@@ -98,6 +98,34 @@ video {
 header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+.header-line-bar {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0.45rem var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  background: rgba(8, 8, 8, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: auto;
+}
+
+.header-line-bar a {
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  transition: color 200ms ease;
+}
+
+.header-line-bar a:hover,
+.header-line-bar a:focus-visible {
+  color: #fff;
+}
+
 .top-nav {
   width: 100%;
   max-width: none;
@@ -165,6 +193,19 @@ header {
   font-size: 0.78rem;
   letter-spacing: 0.15em;
   transition: opacity 200ms ease, color 200ms ease;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.social-link-logo {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .nav-list a::after,
@@ -4678,6 +4719,11 @@ h1 {
     margin-top: 0;
     padding: 0.8rem 1rem;
     border-radius: 0;
+  }
+
+  .header-line-bar {
+    padding: 0.42rem 1rem;
+    justify-content: center;
   }
 
   [data-cart-menu] {

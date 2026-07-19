@@ -42,6 +42,16 @@
     <div class="noise-overlay" aria-hidden="true"></div>
 
     <header class="site-header reveal in-view">
+        <div class="header-line-bar">
+            <a class="social-link" href="https://instagram.com/nebvsin" target="_blank" rel="noreferrer noopener">
+                <img class="social-link-logo" src="{{ asset('images/social/instagram.svg') }}" alt="" aria-hidden="true">
+                <span>IG / @NEBVSIN</span>
+            </a>
+            <a class="social-link" href="https://line.me/R/ti/p/@165vxbld" target="_blank" rel="noreferrer noopener">
+                <img class="social-link-logo" src="{{ asset('images/social/line.svg') }}" alt="" aria-hidden="true">
+                <span>LINE / @165vxbld</span>
+            </a>
+        </div>
         <nav class="top-nav" aria-label="Primary">
             <a href="{{ route('storefront.home', ['lang' => $storefrontLocale]) }}" class="brand" aria-label="{{ $storefrontLayoutCopy['home_aria'] ?? 'Go to homepage' }}">NEBVSIN</a>
             <button
@@ -141,7 +151,14 @@
     <div style="border-top: 1px solid var(--line);">
         <footer class="site-footer reveal in-view">
             <div class="footer-links">
-                <a href="https://instagram.com/nebvsin" target="_blank" rel="noreferrer noopener">IG / @NEBVSIN</a>
+                <a class="social-link" href="https://instagram.com/nebvsin" target="_blank" rel="noreferrer noopener">
+                    <img class="social-link-logo" src="{{ asset('images/social/instagram.svg') }}" alt="" aria-hidden="true">
+                    <span>IG / @NEBVSIN</span>
+                </a>
+                <a class="social-link" href="https://line.me/R/ti/p/@165vxbld" target="_blank" rel="noreferrer noopener">
+                    <img class="social-link-logo" src="{{ asset('images/social/line.svg') }}" alt="" aria-hidden="true">
+                    <span>LINE / @165vxbld</span>
+                </a>
                 <a href="mailto:nebvsinstudio@gmail.com">nebvsinstudio@gmail.com</a>
             </div>
             <p>&copy; 2026 NEBVSIN. {{ $storefrontLayoutCopy['footer_rights'] ?? 'All rights reserved.' }}</p>
