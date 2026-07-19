@@ -90,7 +90,7 @@
                     @if ($product['coming_soon'])
                         <span class="detail-status-badge">{{ $copy['coming_soon'] }}</span>
                     @elseif ($soldProgress)
-                        <span class="detail-status-badge">{{ $soldProgress }}</span>
+                        {{-- <span class="detail-status-badge">{{ $soldProgress }}</span> --}}
                     @endif
                     <img class="detail-image" src="{{ $product['gallery'][0]['url'] ?? $product['image_url'] }}" alt="{{ $product['alt'] }}" data-detail-main-image>
                 </div>
