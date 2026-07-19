@@ -25,7 +25,7 @@ class ImageUploadService
 
         $directory = trim($directory, '/');
         $filename = $prefix.Str::lower((string) Str::uuid()).'.'.$extension;
-        $targetDirectory = public_path('uploads/'.$directory);
+        $targetDirectory = $this->uploadRootPath().'/uploads/'.$directory;
 
         if (! is_dir($targetDirectory) && ! @mkdir($targetDirectory, 0755, true) && ! is_dir($targetDirectory)) {
             throw new \RuntimeException('Unable to create upload directory.');
@@ -34,5 +34,20 @@ class ImageUploadService
         $file->move($targetDirectory, $filename);
 
         return '/uploads/'.$directory.'/'.$filename;
+    }
+
+    protected function uploadRootPath(): string
+    {
+        $path = trim((string) config('storefront.upload_public_path'));
+
+        if ($path === '') {
+            $path = trim((string) request()->server('DOCUMENT_ROOT', $_SERVER['DOCUMENT_ROOT'] ?? ''));
+        }
+
+        if ($path === '') {
+            $path = public_path();
+        }
+
+        return rtrim($path, '/\\');
     }
 }
