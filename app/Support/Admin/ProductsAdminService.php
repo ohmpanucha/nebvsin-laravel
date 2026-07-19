@@ -230,7 +230,7 @@ class ProductsAdminService
         }
 
         if (! $partial || $has('description')) {
-            $payload['description'] = $this->nullableString($input['description'] ?? null);
+            $payload['description'] = $this->nullableString($this->decodeHtmlEntities($input['description'] ?? null));
             if ($partial && Schema::hasColumn('products', 'meta_description')) {
                 $payload['meta_description'] = $payload['description'];
             }
@@ -352,6 +352,21 @@ class ProductsAdminService
     {
         $text = trim((string) $value);
         return $text === '' ? null : $text;
+    }
+
+    protected function decodeHtmlEntities($value): string
+    {
+        $text = (string) $value;
+
+        for ($i = 0; $i < 3; $i++) {
+            $decoded = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if ($decoded === $text) {
+                break;
+            }
+            $text = $decoded;
+        }
+
+        return $text;
     }
 
     protected function toFlag($value): int

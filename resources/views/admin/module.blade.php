@@ -2192,6 +2192,21 @@
                     return { input: input, fileInput: fileInput, sync: sync, showSource: showSource };
                 };
 
+                var decodeHtml = function (value) {
+                    var decoded = String(value || '');
+
+                    for (var index = 0; index < 3; index += 1) {
+                        var textarea = document.createElement('textarea');
+                        textarea.innerHTML = decoded;
+                        if (textarea.value === decoded) {
+                            break;
+                        }
+                        decoded = textarea.value;
+                    }
+
+                    return decoded;
+                };
+
                 var renderGallery = function (scope, images, emptyMessage) {
                     if (!scope) {
                         return;
@@ -2353,15 +2368,15 @@
                     var productId = button.getAttribute('data-product-id') || '';
                     form.action = button.getAttribute('data-update-action') || form.action;
                     heading.textContent = 'Editing product #' + productId;
-                    if (fields.name) fields.name.value = button.getAttribute('data-product-name') || '';
+                    if (fields.name) fields.name.value = decodeHtml(button.getAttribute('data-product-name'));
                     if (fields.price) fields.price.value = button.getAttribute('data-product-price') || '';
                     if (fields.tier) fields.tier.value = button.getAttribute('data-product-tier') || 'core';
-                    if (fields.alt) fields.alt.value = button.getAttribute('data-product-alt') || '';
+                    if (fields.alt) fields.alt.value = decodeHtml(button.getAttribute('data-product-alt'));
                     if (fields.sortOrder) fields.sortOrder.value = button.getAttribute('data-product-sort-order') || '0';
                     if (fields.limitedQty) fields.limitedQty.value = button.getAttribute('data-product-limited-qty') || '0';
                     if (fields.isPublic) fields.isPublic.checked = button.getAttribute('data-product-is-public') === '1';
                     if (fields.comingSoon) fields.comingSoon.checked = button.getAttribute('data-product-coming-soon') === '1';
-                    if (fields.description) fields.description.value = button.getAttribute('data-product-description') || '';
+                    if (fields.description) fields.description.value = decodeHtml(button.getAttribute('data-product-description'));
                     form.setAttribute('data-admin-product-image-src', button.getAttribute('data-product-image') || '');
                     if (editImagePreview && editImagePreview.fileInput) editImagePreview.fileInput.value = '';
                     if (editImagePreview) editImagePreview.sync(button.getAttribute('data-product-image') || '');
