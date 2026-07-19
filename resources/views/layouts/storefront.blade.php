@@ -22,7 +22,7 @@
         $storefrontCssPath = public_path('css/storefront.css');
         $storefrontCssVersion = is_file($storefrontCssPath) ? filemtime($storefrontCssPath) : time();
     @endphp
-    <link rel="stylesheet" href="{{ asset('css/storefront.css') }}?v={{ $storefrontCssVersion }}">
+    <link rel="stylesheet" href="{{ asset('css/storefront.css') }}?v={{ time() }}">
     @stack('meta')
 </head>
 @php
@@ -38,7 +38,7 @@
         && ! request()->routeIs('admin.*');
 @endphp
 <body class="{{ $cartDrawerOpen ? 'cart-drawer-open' : '' }}">
-    <a class="skip-link" href="#main-content">{{ $storefrontLayoutCopy['skip_to_content'] ?? 'Skip to content' }}</a>
+    {{-- <a class="skip-link" href="#main-content">{{ $storefrontLayoutCopy['skip_to_content'] ?? 'Skip to content' }}</a> --}}
     <div class="noise-overlay" aria-hidden="true"></div>
 
     <header class="site-header reveal in-view">
