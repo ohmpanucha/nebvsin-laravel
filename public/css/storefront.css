@@ -101,7 +101,6 @@ header {
 
 .header-line-bar {
   width: 100%;
-  max-width: var(--max);
   margin: 0 auto;
   padding: 0.45rem var(--space-4);
   display: flex;

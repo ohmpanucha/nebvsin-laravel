@@ -315,6 +315,7 @@
         {{-- เก็บไว้ก่อน ห้ามลบ --}}
         {{-- <section class="hp-section reveal in-view" id="hp-signature" aria-labelledby="hp-signature-title">
             <div class="hp-container">
+                <h2 class="hp-section-title">LIMITED EDITION</h2><br>
                 <div class="hp-signature">
                     <div class="hp-signature-copy">
                         <p class="hp-kicker">{{ $homeContent['signature_kicker'] ?? '03 / SIGNATURE' }}</p>
